@@ -1,11 +1,17 @@
 import * as cdk from "aws-cdk-lib";
 import { Duration, RemovalPolicy } from "aws-cdk-lib";
 import { DnsValidatedCertificate } from "aws-cdk-lib/aws-certificatemanager";
+import * as cf from "aws-cdk-lib/aws-cloudfront";
+import {
+  AllowedMethods,
+  HttpVersion,
+  ViewerProtocolPolicy,
+} from "aws-cdk-lib/aws-cloudfront";
+import * as origins from "aws-cdk-lib/aws-cloudfront-origins";
 import { HostedZone } from "aws-cdk-lib/aws-route53";
 import * as s3 from "aws-cdk-lib/aws-s3";
 import { BlockPublicAccess, BucketEncryption } from "aws-cdk-lib/aws-s3";
 import * as s3Deploy from "aws-cdk-lib/aws-s3-deployment";
-import { BucketDeployment, Source } from "aws-cdk-lib/aws-s3-deployment";
 import { Construct } from "constructs";
 
 interface CDKGatsbyStackProps extends cdk.StackProps {
@@ -60,5 +66,34 @@ export class CDKGatsbyStack extends cdk.Stack {
         region: "us-east-1",
       }
     );
+
+    // Create Cloudfront Origin Access Identity
+    const originAccessIdentity = new cf.OriginAccessIdentity(
+      this,
+      "MyOriginAccessIdentity",
+      {
+        comment: "comment",
+      }
+    );
+
+    // Create Cloudfront Distribution
+    const distribution = new cf.Distribution(this, "GatsbyCDKDistribution", {
+      certificate: certificate,
+      defaultRootObject: "index.html",
+      domainNames: [
+        `${props.subdomain}.${props.domain}`,
+        `www.${props.subdomain}.${props.domain}`,
+      ],
+      defaultBehavior: {
+        origin: new origins.S3Origin(gatsbyBucket, { originAccessIdentity }),
+        allowedMethods: AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
+        viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+      },
+      httpVersion: HttpVersion.HTTP2_AND_3,
+    });
+
+    // Create route53 record, pointing to distribution
+
+    // Create the www record, also pointing to the distribution
   }
 }
