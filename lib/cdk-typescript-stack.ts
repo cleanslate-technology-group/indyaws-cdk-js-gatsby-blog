@@ -8,7 +8,11 @@ import {
   ViewerProtocolPolicy,
 } from "aws-cdk-lib/aws-cloudfront";
 import * as origins from "aws-cdk-lib/aws-cloudfront-origins";
-import { HostedZone } from "aws-cdk-lib/aws-route53";
+import { ARecord, HostedZone, RecordTarget } from "aws-cdk-lib/aws-route53";
+import {
+  CloudFrontTarget,
+  Route53RecordTarget,
+} from "aws-cdk-lib/aws-route53-targets";
 import * as s3 from "aws-cdk-lib/aws-s3";
 import { BlockPublicAccess, BucketEncryption } from "aws-cdk-lib/aws-s3";
 import * as s3Deploy from "aws-cdk-lib/aws-s3-deployment";
@@ -27,8 +31,7 @@ export class CDKGatsbyStack extends cdk.Stack {
     const gatsbyBucket = new s3.Bucket(this, "GatsbyCDKSite", {
       bucketName: `${props.subdomain}.${props.domain}`,
       encryption: BucketEncryption.S3_MANAGED,
-      blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
-      enforceSSL: true,
+      publicReadAccess: true,
       versioned: true,
       removalPolicy: RemovalPolicy.RETAIN,
       websiteIndexDocument: "index.html",
@@ -41,12 +44,6 @@ export class CDKGatsbyStack extends cdk.Stack {
       noncurrentVersionsToRetain: 5,
       noncurrentVersionExpiration: Duration.days(60),
       abortIncompleteMultipartUploadAfter: Duration.days(10),
-    });
-
-    // Create Sample Site on Asset Creation
-    const deployment = new s3Deploy.BucketDeployment(this, "ExampleSite", {
-      sources: [s3Deploy.Source.asset("./static")],
-      destinationBucket: gatsbyBucket,
     });
 
     // Import existing hosted zone for adding subdomain
@@ -93,7 +90,25 @@ export class CDKGatsbyStack extends cdk.Stack {
     });
 
     // Create route53 record, pointing to distribution
+    new ARecord(this, "GatsbyCDKAliasRecord", {
+      zone: hz,
+      target: RecordTarget.fromAlias(new CloudFrontTarget(distribution)),
+      recordName: `${props.subdomain}.${props.domain}`,
+    });
 
     // Create the www record, also pointing to the distribution
+    new ARecord(this, "GatsbyCDKWWWAliasRecord", {
+      zone: hz,
+      target: RecordTarget.fromAlias(new CloudFrontTarget(distribution)),
+      recordName: `www.${props.subdomain}.${props.domain}`,
+    });
+
+    // Create Sample Site on Asset Creation
+    const deployment = new s3Deploy.BucketDeployment(this, "ExampleSite", {
+      sources: [s3Deploy.Source.asset("./static")],
+      destinationBucket: gatsbyBucket,
+      distribution: distribution,
+      distributionPaths: ["/*"],
+    });
   }
 }
