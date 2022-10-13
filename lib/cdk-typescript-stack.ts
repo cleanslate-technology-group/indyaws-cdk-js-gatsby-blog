@@ -50,14 +50,15 @@ export class CDKGatsbyStack extends cdk.Stack {
     });
 
     // Create ACM Cert & Verify via DNS entry
-    // const certificate = new DnsValidatedCertificate(
-    //   this,
-    //   "GatsbyCDKCertificate",
-    //   {
-    //     domainName: `${props.subdomain}.${props.domain}`,
-    //     hostedZone: hz,
-    //     region: "us-east-1",
-    //   }
-    // );
+    const certificate = new DnsValidatedCertificate(
+      this,
+      "GatsbyCDKCertificate",
+      {
+        domainName: `${props.subdomain}.${props.domain}`,
+        subjectAlternativeNames: [`www.${props.subdomain}.${props.domain}`],
+        hostedZone: hz,
+        region: "us-east-1",
+      }
+    );
   }
 }
