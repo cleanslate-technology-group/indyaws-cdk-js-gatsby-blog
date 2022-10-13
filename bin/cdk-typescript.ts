@@ -1,11 +1,11 @@
 #!/usr/bin/env node
-
-const cdk = require("aws-cdk-lib");
-const { CDKGatsby } = require("../lib/cdk-infrastructure-stack");
+import "source-map-support/register";
+import * as cdk from "aws-cdk-lib";
+import { CDKGatsbyStack } from "../lib/cdk-typescript-stack";
 
 const app = new cdk.App();
 
-new CDKGatsby(app, "CDKGatsby", {
+new CDKGatsbyStack(app, "CDKGatsby", {
   env: { account: "310141637485", region: "us-east-2" },
   domain: "cleanslatetg.cloud",
   subdomain: "garden",
