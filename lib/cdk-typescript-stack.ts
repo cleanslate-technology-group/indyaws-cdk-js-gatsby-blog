@@ -155,6 +155,11 @@ export class CDKGatsbyStack extends Stack {
     const buildGatsbySite = new PipelineProject(this, "StaticSiteBuild", {
       buildSpec: BuildSpec.fromObject({
         version: "0.2",
+        phases: {
+          install: {
+            commands: ["cd digital-garden", "yarn install"],
+          },
+        },
       }),
     });
 
