@@ -1,5 +1,5 @@
-import * as cdk from "aws-cdk-lib";
-import { Duration, RemovalPolicy } from "aws-cdk-lib";
+// import * as cdk from "aws-cdk-lib";
+import { Stack, Duration, RemovalPolicy, StackProps } from "aws-cdk-lib";
 import { DnsValidatedCertificate } from "aws-cdk-lib/aws-certificatemanager";
 import * as cf from "aws-cdk-lib/aws-cloudfront";
 import {
@@ -9,21 +9,27 @@ import {
 } from "aws-cdk-lib/aws-cloudfront";
 import * as origins from "aws-cdk-lib/aws-cloudfront-origins";
 import { ARecord, HostedZone, RecordTarget } from "aws-cdk-lib/aws-route53";
-import {
-  CloudFrontTarget,
-  Route53RecordTarget,
-} from "aws-cdk-lib/aws-route53-targets";
+import { CloudFrontTarget } from "aws-cdk-lib/aws-route53-targets";
 import * as s3 from "aws-cdk-lib/aws-s3";
-import { BlockPublicAccess, BucketEncryption } from "aws-cdk-lib/aws-s3";
+import { BucketEncryption } from "aws-cdk-lib/aws-s3";
 import * as s3Deploy from "aws-cdk-lib/aws-s3-deployment";
 import { Construct } from "constructs";
+import { Pipeline, Artifact } from "aws-cdk-lib/aws-codepipeline";
+import {
+  CodeBuildAction,
+  CodeStarConnectionsSourceAction,
+} from "aws-cdk-lib/aws-codepipeline-actions";
+import * as codestar from "aws-cdk-lib/aws-codestarconnections";
+import { CodePipeline } from "aws-cdk-lib/pipelines";
+import { CodeBuildProject } from "aws-cdk-lib/aws-events-targets";
+import { BuildSpec, PipelineProject } from "aws-cdk-lib/aws-codebuild";
 
-interface CDKGatsbyStackProps extends cdk.StackProps {
+interface CDKGatsbyStackProps extends StackProps {
   domain: string;
   subdomain?: string;
 }
 
-export class CDKGatsbyStack extends cdk.Stack {
+export class CDKGatsbyStack extends Stack {
   constructor(scope: Construct, id: string, props: CDKGatsbyStackProps) {
     super(scope, id, props);
 
@@ -103,12 +109,70 @@ export class CDKGatsbyStack extends cdk.Stack {
       recordName: `www.${props.subdomain}.${props.domain}`,
     });
 
-    // Create Sample Site on Asset Creation
+    // Create Sample Site on Asset Creation - Temporary only
     const deployment = new s3Deploy.BucketDeployment(this, "ExampleSite", {
       sources: [s3Deploy.Source.asset("./static")],
       destinationBucket: gatsbyBucket,
       distribution: distribution,
       distributionPaths: ["/*"],
     });
+
+    // Create Codestar Connection
+    // Note: This connection will be created in a pending state and must be completed on the AWS Console
+    const codestarGithubConnection = new codestar.CfnConnection(
+      this,
+      "GatsbyCDKGithubConnection",
+      {
+        connectionName: "gatsbyCdkGithubConnection",
+        providerType: "GitHub",
+      }
+    );
+
+    // Create Code Pipeline
+    const pipeline = new Pipeline(this, "GatsbyCDKPipeline", {
+      pipelineName: "GatsbyCDKPipeline",
+    });
+
+    // Stage: Pull repo from Github
+    const sourceOutput = new Artifact();
+
+    const sourceAction = new CodeStarConnectionsSourceAction({
+      actionName: "GithubSource",
+      owner: "cleanslate-technology-group",
+      repo: "indyaws-cdk-js-gatsby-blog",
+      connectionArn: codestarGithubConnection.attrConnectionArn,
+      output: sourceOutput,
+      branch: "main",
+    });
+
+    const sourceStage = pipeline.addStage({
+      stageName: "Source",
+      actions: [sourceAction],
+    });
+
+    // Stage: Build Static Gatsby Site
+    const buildArtifact = new Artifact();
+    const buildGatsbySite = new PipelineProject(this, "StaticSiteBuild", {
+      buildSpec: BuildSpec.fromObject({
+        version: "0.2",
+      }),
+    });
+
+    const buildAction = new CodeBuildAction({
+      actionName: "BuildStaticSite",
+      project: buildGatsbySite,
+      input: sourceOutput,
+      runOrder: 1,
+      outputs: [buildArtifact],
+    });
+
+    const buildStage = pipeline.addStage({
+      stageName: "Build",
+      actions: [buildAction],
+    });
+
+    // Stage: Deploy Static Gatsby Site
+
+    // Stage: Apply Cloudfront Invalidations
   }
 }
