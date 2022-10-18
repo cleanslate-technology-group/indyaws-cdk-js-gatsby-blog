@@ -157,6 +157,9 @@ export class CDKGatsbyStack extends Stack {
         version: "0.2",
         phases: {
           install: {
+            "runtime-versions": {
+              nodejs: "latest",
+            },
             commands: ["cd digital-garden", "yarn install"],
           },
         },
