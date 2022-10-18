@@ -1,0 +1,12 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - n 16.14.0
+      - cd digital-garden
+      - yarn install
+  build:
+    commands:
+      - n 16.14.0
+      - yarn build

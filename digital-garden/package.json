@@ -7,6 +7,7 @@
   "bugs": {
     "url": "https://github.com/cleanslate-technology-group/indyaws-cdk-js-gatsby-blog/issues"
   },
+  "license": "None",
   "dependencies": {
     "gatsby": "^4.24.4",
     "gatsby-plugin-feed": "^4.24.0",
