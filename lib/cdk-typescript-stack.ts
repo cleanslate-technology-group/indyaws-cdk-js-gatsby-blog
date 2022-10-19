@@ -18,6 +18,7 @@ import { Pipeline, Artifact } from "aws-cdk-lib/aws-codepipeline";
 import {
   CodeBuildAction,
   CodeStarConnectionsSourceAction,
+  S3DeployAction,
 } from "aws-cdk-lib/aws-codepipeline-actions";
 import * as codestar from "aws-cdk-lib/aws-codestarconnections";
 import { CodePipeline } from "aws-cdk-lib/pipelines";
@@ -109,14 +110,6 @@ export class CDKGatsbyStack extends Stack {
       recordName: `www.${props.subdomain}.${props.domain}`,
     });
 
-    // Create Sample Site on Asset Creation - Temporary only
-    const deployment = new s3Deploy.BucketDeployment(this, "ExampleSite", {
-      sources: [s3Deploy.Source.asset("./static")],
-      destinationBucket: gatsbyBucket,
-      distribution: distribution,
-      distributionPaths: ["/*"],
-    });
-
     // Create Codestar Connection
     // Note: This connection will be created in a pending state and must be completed on the AWS Console
     const codestarGithubConnection = new codestar.CfnConnection(
@@ -180,6 +173,17 @@ export class CDKGatsbyStack extends Stack {
     });
 
     // Stage: Deploy Static Gatsby Site
+    const deployAction = new S3DeployAction({
+      bucket: gatsbyBucket,
+      input: buildArtifact,
+      actionName: "Deploy-To-S3",
+      runOrder: 1,
+    });
+
+    const deployStage = pipeline.addStage({
+      stageName: "Deploy",
+      actions: [deployAction],
+    });
 
     // Stage: Apply Cloudfront Invalidations
   }
