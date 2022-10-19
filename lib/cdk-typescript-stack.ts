@@ -219,6 +219,7 @@ export class CDKGatsbyStack extends Stack {
     );
 
     const invalidateSite = new PipelineProject(this, "StaticSiteInvalidate", {
+      role: cfInvalidateIamRole,
       buildSpec: BuildSpec.fromObject({
         version: "0.2",
         phases: {
