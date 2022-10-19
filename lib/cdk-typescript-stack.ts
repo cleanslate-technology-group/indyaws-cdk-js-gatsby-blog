@@ -1,5 +1,11 @@
 // import * as cdk from "aws-cdk-lib";
-import { Stack, Duration, RemovalPolicy, StackProps } from "aws-cdk-lib";
+import {
+  Stack,
+  Duration,
+  RemovalPolicy,
+  StackProps,
+  aws_iam,
+} from "aws-cdk-lib";
 import { DnsValidatedCertificate } from "aws-cdk-lib/aws-certificatemanager";
 import * as cf from "aws-cdk-lib/aws-cloudfront";
 import {
@@ -24,6 +30,12 @@ import * as codestar from "aws-cdk-lib/aws-codestarconnections";
 import { CodePipeline } from "aws-cdk-lib/pipelines";
 import { CodeBuildProject } from "aws-cdk-lib/aws-events-targets";
 import { BuildSpec, PipelineProject } from "aws-cdk-lib/aws-codebuild";
+import {
+  Effect,
+  PolicyStatement,
+  Role,
+  ServicePrincipal,
+} from "aws-cdk-lib/aws-iam";
 
 interface CDKGatsbyStackProps extends StackProps {
   domain: string;
@@ -191,5 +203,43 @@ export class CDKGatsbyStack extends Stack {
     });
 
     // Stage: Apply Cloudfront Invalidations
+    const cfInvalidateIamRole = new Role(this, "GatbsyCDKInvalidateRole", {
+      assumedBy: new ServicePrincipal("codebuild.amazonaws.com"),
+    });
+
+    cfInvalidateIamRole.addToPolicy(
+      new PolicyStatement({
+        effect: Effect.ALLOW,
+        resources: [
+          `arn:aws:cloudfront::${this.account}:distribution/${distribution.distributionId}`,
+        ],
+        actions: ["cloudfront:CreateInvalidation"],
+      })
+    );
+
+    const invalidateSite = new PipelineProject(this, "StaticSiteInvalidate", {
+      buildSpec: BuildSpec.fromObject({
+        version: "0.2",
+        phases: {
+          build: {
+            commands: [
+              `aws cloudfront create-invalidation --distribution-id ${distribution.distributionId} --paths '/*'`,
+            ],
+          },
+        },
+      }),
+    });
+
+    const invalidateAction = new CodeBuildAction({
+      actionName: "InvalidateStaticSite",
+      project: invalidateSite,
+      input: buildArtifact,
+      runOrder: 1,
+    });
+
+    const invalidateStage = pipeline.addStage({
+      stageName: "Invalidate",
+      actions: [invalidateAction],
+    });
   }
 }
