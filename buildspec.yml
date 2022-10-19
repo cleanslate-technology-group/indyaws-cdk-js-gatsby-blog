@@ -10,3 +10,11 @@ phases:
     commands:
       - n 16.14.0
       - yarn build
+      - pwd
+      - ls -l
+
+artifacts:
+  base-directory: "digital-garden/public"
+  files:
+    - "**/*"
+  discard-paths: yes

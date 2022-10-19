@@ -156,6 +156,11 @@ export class CDKGatsbyStack extends Stack {
             commands: ["n 16.14.0", "yarn build"],
           },
         },
+        artifacts: {
+          "base-directory": "digital-garden/public",
+          files: ["**/*"],
+          "discard-paths": "yes",
+        },
       }),
     });
 

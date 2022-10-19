@@ -213,3 +213,6 @@ node_modules
 .cdk.staging
 cdk.out
 .dccache
+
+# Codebuild Local directory
+local-build/*
