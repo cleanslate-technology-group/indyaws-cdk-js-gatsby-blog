@@ -42,7 +42,7 @@ export class CDKGatsbyStack extends Stack {
       versioned: true,
       removalPolicy: RemovalPolicy.RETAIN,
       websiteIndexDocument: "index.html",
-      websiteErrorDocument: "404.html",
+      websiteErrorDocument: "index.html",
     });
 
     // Lifecycle Rule for S3 Bucket object versions
