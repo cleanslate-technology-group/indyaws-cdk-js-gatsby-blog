@@ -171,7 +171,6 @@ export class CDKGatsbyStack extends Stack {
         artifacts: {
           "base-directory": "digital-garden/public",
           files: ["**/*"],
-          "discard-paths": "yes",
         },
       }),
     });
