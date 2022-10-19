@@ -17,7 +17,7 @@ import * as origins from "aws-cdk-lib/aws-cloudfront-origins";
 import { ARecord, HostedZone, RecordTarget } from "aws-cdk-lib/aws-route53";
 import { CloudFrontTarget } from "aws-cdk-lib/aws-route53-targets";
 import * as s3 from "aws-cdk-lib/aws-s3";
-import { BucketEncryption } from "aws-cdk-lib/aws-s3";
+import { BucketAccessControl, BucketEncryption } from "aws-cdk-lib/aws-s3";
 import * as s3Deploy from "aws-cdk-lib/aws-s3-deployment";
 import { Construct } from "constructs";
 import { Pipeline, Artifact } from "aws-cdk-lib/aws-codepipeline";
@@ -128,7 +128,7 @@ export class CDKGatsbyStack extends Stack {
       this,
       "GatsbyCDKGithubConnection",
       {
-        connectionName: "gatsbyCdkGithubConnection",
+        connectionName: "gatsby-cdk-github",
         providerType: "GitHub",
       }
     );
@@ -194,6 +194,7 @@ export class CDKGatsbyStack extends Stack {
       bucket: gatsbyBucket,
       input: buildArtifact,
       actionName: "Deploy-To-S3",
+      accessControl: BucketAccessControl.PUBLIC_READ,
       runOrder: 1,
     });
 
