@@ -1,14 +1,14 @@
 module.exports = {
   siteMetadata: {
-    title: `Gatsby Starter Blog`,
+    title: `Gatsby CDK Ditital Garden`,
     author: {
-      name: `Kyle Mathews`,
-      summary: `who lives and works in San Francisco building useful things.`,
+      name: `David Poindexter`,
+      summary: `who lives and works in Indianapolis building happy little clouds.`,
     },
-    description: `A starter blog demonstrating what Gatsby can do.`,
-    siteUrl: `https://gatsbystarterblogsource.gatsbyjs.io/`,
+    description: `A digital garden demonstrating what Gatsby and AWS CDK can do.`,
+    siteUrl: `https://garden.cleanslatetg.cloud/`,
     social: {
-      twitter: `kylemathews`,
+      twitter: `drpoindexter`,
     },
   },
   plugins: [
@@ -43,7 +43,13 @@ module.exports = {
               wrapperStyle: `margin-bottom: 1.0725rem`,
             },
           },
-          `gatsby-remark-prismjs`,
+          {
+            resolve: `gatsby-remark-prismjs`,
+            options: {
+              inlineCodeMarker: ">",
+              showLineNumbers: true,
+            },
+          },
           `gatsby-remark-copy-linked-files`,
           `gatsby-remark-smartypants`,
         ],

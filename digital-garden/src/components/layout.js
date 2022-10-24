@@ -28,6 +28,15 @@ const Layout = ({ location, title, children }) => {
         © {new Date().getFullYear()}, Built with
         {` `}
         <a href="https://www.gatsbyjs.com">Gatsby</a>
+        {` `}
+        by <a href="https://linktr.ee/drpoindexter">David Poindexter,</a>
+        {` `}
+        open source on{" "}
+        <a href="https://github.com/cleanslate-technology-group/indyaws-cdk-js-gatsby-blog">
+          Github,
+        </a>
+        {` `}
+        &amp; deployed on <a href="https://aws.amazon.com/cdk/">AWS via CDK</a>
       </footer>
     </div>
   )

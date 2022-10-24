@@ -54,12 +54,13 @@
   --fontSize-5: 2.074rem;
   --fontSize-6: 2.488rem;
   --fontSize-7: 2.986rem;
-  --color-primary: #005b99;
-  --color-text: #2e353f;
+  --color-primary: #CDCBE7;
+  --color-text: #CDCBE7;
   --color-text-light: #4f5969;
-  --color-heading: #1a202c;
-  --color-heading-black: black;
-  --color-accent: #d1dce5;
+  --color-heading: #8f89d9;
+  --color-heading-black: #EFB1FF;
+  --color-accent: #EFB1FF;
+  --color-background: #0c0116;
 }
 
 /* HTML elements */
@@ -81,6 +82,7 @@ body {
   font-family: var(--font-body);
   font-size: var(--fontSize-1);
   color: var(--color-text);
+  background-color: var(--color-background);
 }
 
 footer {
@@ -144,7 +146,7 @@ h6 {
 }
 
 h1 > a {
-  color: inherit;
+  color: var(--color-heading);
   text-decoration: none;
 }
 
@@ -154,7 +156,7 @@ h4 > a,
 h5 > a,
 h6 > a {
   text-decoration: none;
-  color: inherit;
+  color: var(--color-heading);
 }
 
 /* Prose */
@@ -230,12 +232,13 @@ table thead tr th {
 /* Link */
 
 a {
-  color: var(--color-primary);
+  color: var(--color-accent);
 }
 
 a:hover,
 a:focus {
-  text-decoration: none;
+  text-decoration: underline;
+  color: var(--color-accent);
 }
 
 /* Custom classes */
