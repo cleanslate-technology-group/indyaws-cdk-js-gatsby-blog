@@ -1,11 +1,4 @@
-// import * as cdk from "aws-cdk-lib";
-import {
-  Stack,
-  Duration,
-  RemovalPolicy,
-  StackProps,
-  aws_iam,
-} from "aws-cdk-lib";
+import { Stack, Duration, RemovalPolicy, StackProps } from "aws-cdk-lib";
 import { DnsValidatedCertificate } from "aws-cdk-lib/aws-certificatemanager";
 import * as cf from "aws-cdk-lib/aws-cloudfront";
 import {
@@ -18,7 +11,6 @@ import { ARecord, HostedZone, RecordTarget } from "aws-cdk-lib/aws-route53";
 import { CloudFrontTarget } from "aws-cdk-lib/aws-route53-targets";
 import * as s3 from "aws-cdk-lib/aws-s3";
 import { BucketAccessControl, BucketEncryption } from "aws-cdk-lib/aws-s3";
-import * as s3Deploy from "aws-cdk-lib/aws-s3-deployment";
 import { Construct } from "constructs";
 import { Pipeline, Artifact } from "aws-cdk-lib/aws-codepipeline";
 import {
@@ -27,8 +19,6 @@ import {
   S3DeployAction,
 } from "aws-cdk-lib/aws-codepipeline-actions";
 import * as codestar from "aws-cdk-lib/aws-codestarconnections";
-import { CodePipeline } from "aws-cdk-lib/pipelines";
-import { CodeBuildProject } from "aws-cdk-lib/aws-events-targets";
 import { BuildSpec, PipelineProject } from "aws-cdk-lib/aws-codebuild";
 import {
   Effect,
@@ -39,7 +29,9 @@ import {
 
 interface CDKGatsbyStackProps extends StackProps {
   domain: string;
-  subdomain?: string;
+  subdomain: string;
+  githubOwner: string;
+  githubRepo: string;
 }
 
 export class CDKGatsbyStack extends Stack {
@@ -79,7 +71,7 @@ export class CDKGatsbyStack extends Stack {
         domainName: `${props.subdomain}.${props.domain}`,
         subjectAlternativeNames: [`www.${props.subdomain}.${props.domain}`],
         hostedZone: hz,
-        region: "us-east-1",
+        region: "us-east-1", //Must use this region for the certificat
       }
     );
 
@@ -88,7 +80,7 @@ export class CDKGatsbyStack extends Stack {
       this,
       "MyOriginAccessIdentity",
       {
-        comment: "comment",
+        comment: "comment", //purely optional comment about OAI
       }
     );
 
@@ -143,8 +135,8 @@ export class CDKGatsbyStack extends Stack {
 
     const sourceAction = new CodeStarConnectionsSourceAction({
       actionName: "GithubSource",
-      owner: "cleanslate-technology-group",
-      repo: "indyaws-cdk-js-gatsby-blog",
+      owner: props.githubOwner,
+      repo: props.githubRepo,
       connectionArn: codestarGithubConnection.attrConnectionArn,
       output: sourceOutput,
       branch: "main",
